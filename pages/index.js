@@ -1,4 +1,6 @@
-// import MeetupList from '../components/meetups/MeetupList'
+
+import MeetUpList from "../components/meetups/MeetupList";
+import {MongoClient} from "mongodb"
 
 const Dummy_Meetups=[
     {   id:'m1',
@@ -15,12 +17,6 @@ const Dummy_Meetups=[
 }
 ]
 
-// function Homepage(){
-
-//     return< MeetupList meetups={Dummy_Meetups}></MeetupList>
-// }
-// export default Homepage;
-import MeetUpList from "../components/meetups/MeetupList";
 
 //  here if we use useEffect , useState to fetch Api initailly we store in empty array , so basically when componet render for first time , useEffect call
 // then then again component re-render during this second cycle we get data but in Next js as here we see server side the initial cycle is empty array []
@@ -48,11 +44,28 @@ export async function getStaticProps() {
   //  return must Object
   // must have props property
   // this props we need in HomePage as props.
+
+  const client = await MongoClient.connect(
+    "mongodb+srv://arunmalewadi:bkfxOhqwBilYQ0NK@cluster0.gtjc9ml.mongodb.net/?retryWrites=true&w=majority");
+
+  const db = client.db();
+
+  const meetupsCollections = db.collection("meetups");
+  const Meetups= await meetupsCollections.find().toArray()
+  console.log("Hi"+Meetups)
+
+  client.close()
+
   return {
     props: {
-      meetups: Dummy_Meetups,
-    },
-  };
+        meetups:  Meetups.map(meetup=> ({title:meetup.data.title,
+            address:meetup.data.address,
+            image:meetup.data.image,
+            id:meetup._id.toString()
+        
+        })),
+    revalidate:1
+  }
 }
-
+}
 export default HomePage;
